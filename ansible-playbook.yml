@@ -9,12 +9,18 @@
   - name : Install Docker
     command : sudo apt-get install -y docker.io
     become : yes
-    become_user : rajesh
+    become_user : root
     
   - name : Start Docker Service
     command : sudo systemctl start docker
     become : yes
-    become_user : rajesh
+    become_user : root
+    
+  - name : stop existing containers
+    shell: docker stop $(docker ps -a -q)
 
+  - name : delete all containers
+    shell: docker rm $(docker ps -a -q)
+    
   - name: Deploy Docker Container
-    command: docker run -itd -p 1212:8080 rajeshraji/bank-project:1.3
+    command: docker run -itd -p 1212:8081 rajeshraji/bank-project:1.3
