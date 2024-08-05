@@ -16,11 +16,5 @@
     become : yes
     become_user : rr
     
-  - name : stop existing containers
-    shell: docker stop $(docker ps -a -q)
-
-  - name : delete all containers
-    shell: docker rm $(docker ps -a -q)
-    
   - name: Deploy Docker Container
     command: docker run -itd -p 1212:8081 rajeshraji/bank-project:1.3
