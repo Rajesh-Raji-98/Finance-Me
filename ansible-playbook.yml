@@ -9,12 +9,12 @@
   - name : Install Docker
     command : sudo apt-get install -y docker.io
     become : yes
-    become_user : root
+    become_user : rr
     
   - name : Start Docker Service
     command : sudo systemctl start docker
     become : yes
-    become_user : root
+    become_user : rr
     
   - name : stop existing containers
     shell: docker stop $(docker ps -a -q)
