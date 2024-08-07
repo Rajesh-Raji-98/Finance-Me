@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout the code from github repository') {
+            steps {
+                echo 'Github repo checkout'
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Rajesh-Raji-98/Finance-Me']])
+            }
+        }
+        stage('Compile the code'){
+            steps{
+                echo 'start compiling'
+                sh 'mvn compile'
+            }
+        }
+        stage('Testing the code'){
+            steps{
+                echo 'Testing the functionality of code' 
+                sh 'mvn test'
+            }
+        }
+        stage('Quality checking of code '){
+            steps{
+                echo 'checking the quality & bugs in code' 
+                sh 'mvn checkstyle:checkstyle'
+            }
+        }
+        stage('Build the application') {
+            steps {
+                echo 'cleaning and packaging the code'
+                sh 'mvn clean package'
+            }
+        }
+        stage('use docker to build image') {
+            steps {
+                echo 'making the image from the application'
+                sh 'docker build -t rajeshraji/banking-project:1.5 .'
+            }
+        }
+        stage('Login to Dockerhub') {
+            steps {
+                echo 'Login to our dockerhub account'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }  
+            }
+        }
+        stage('pushing the image to Dockerhub') {
+            steps {
+                echo 'Pushing the application image to our dockerhub account'
+                  sh 'docker push rajeshraji/banking-project:1.5'
+             
+            }
+        }
+         stage('Configure and Deploy to the pod-server using Ansible') {
+            steps {
+                ansiblePlaybook become: true, credentialsId: 'ssh-dockerhub', disableHostKeyChecking: true, installation: 'ansible', inventory: 'server-host', playbook: 'ansible-playbook.yml', sudoUser: null, vaultTmpPath: ''
+            }
+        }
+    }
+}
